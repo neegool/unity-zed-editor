@@ -8,7 +8,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	internal static class SolutionParser
 	{

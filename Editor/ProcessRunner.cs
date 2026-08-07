@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	internal class ProcessRunnerResult
 	{

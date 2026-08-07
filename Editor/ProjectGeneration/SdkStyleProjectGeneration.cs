@@ -10,7 +10,7 @@ using System.Text;
 using UnityEditor.Compilation;
 using UnityEngine;
 
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	internal class SdkStyleProjectGeneration : ProjectGeneration
 	{

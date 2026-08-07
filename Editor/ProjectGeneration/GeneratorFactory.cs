@@ -6,7 +6,7 @@
 
 using System;
 
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	internal enum GeneratorStyle
 	{

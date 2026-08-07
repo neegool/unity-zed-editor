@@ -7,7 +7,7 @@ using System.IO;
 using Unity.CodeEditor;
 using IOPath = System.IO.Path;
 
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	internal interface IVisualStudioInstallation
 	{

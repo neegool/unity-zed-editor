@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using Unity.CodeEditor;
 
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	internal static class Cli
 	{
@@ -21,7 +21,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			return $"{installation.ToCodeEditorInstallation().Name} Path:{installation.Path}, LanguageVersionSupport:{installation.LatestLanguageVersionSupported} AnalyzersSupport:{installation.SupportsAnalyzers}";
 		}
 
-		internal static void GenerateSolutionWith(VisualStudioEditor vse, string installationPath)
+		internal static void GenerateSolutionWith(ZedEditor vse, string installationPath)
 		{
 			if (vse != null && vse.TryGetVisualStudioInstallationForPath(installationPath, lookupDiscoveredInstallations: true, out var vsi))
 			{
@@ -36,7 +36,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 
 		internal static void GenerateSolution()
 		{
-			if (CodeEditor.CurrentEditor is VisualStudioEditor vse)
+			if (CodeEditor.CurrentEditor is ZedEditor vse)
 			{
 				Log($"Using default editor settings for Visual Studio installation");
 				GenerateSolutionWith(vse, CodeEditor.CurrentEditorInstallation);
@@ -67,7 +67,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 						try
 						{
 							CodeEditor.SetExternalScriptEditor(installation.Path);
-							GenerateSolutionWith(CodeEditor.CurrentEditor as VisualStudioEditor, installation.Path);
+							GenerateSolutionWith(CodeEditor.CurrentEditor as ZedEditor, installation.Path);
 						}
 						finally
 						{

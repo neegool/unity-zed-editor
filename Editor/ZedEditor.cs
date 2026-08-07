@@ -6,19 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using Unity.CodeEditor;
 
-[assembly: InternalsVisibleTo("Unity.VisualStudio.EditorTests")]
-[assembly: InternalsVisibleTo("Unity.VisualStudio.Standalone.EditorTests")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
-
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	[InitializeOnLoad]
-	public class VisualStudioEditor : IExternalCodeEditor
+	public class ZedEditor : IExternalCodeEditor
 	{
 		CodeEditor.Installation[] IExternalCodeEditor.Installations => _discoverInstallations
 			.Result
@@ -28,13 +23,13 @@ namespace Microsoft.Unity.VisualStudio.Editor
 
 		private static readonly AsyncOperation<Dictionary<string, IVisualStudioInstallation>> _discoverInstallations;
 
-		static VisualStudioEditor()
+		static ZedEditor()
 		{
 			if (!UnityInstallation.IsMainUnityEditorProcess)
 				return;
 
 			Discovery.Initialize();
-			CodeEditor.Register(new VisualStudioEditor());
+			CodeEditor.Register(new ZedEditor());
 
 			_discoverInstallations = AsyncOperation<Dictionary<string, IVisualStudioInstallation>>.Run(DiscoverInstallations);
 		}
@@ -54,7 +49,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			}
 		}
 
-		internal static bool IsEnabled => CodeEditor.CurrentEditor is VisualStudioEditor && UnityInstallation.IsMainUnityEditorProcess;
+		internal static bool IsEnabled => CodeEditor.CurrentEditor is ZedEditor && UnityInstallation.IsMainUnityEditorProcess;
 
 		// this one seems legacy and not used anymore
 		// keeping it for now given it is public, so we need a major bump to remove it 

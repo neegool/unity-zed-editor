@@ -13,7 +13,7 @@ using UnityEngine;
 using SimpleJSON;
 using IOPath = System.IO.Path;
 
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	internal class VisualStudioCodeInstallation : VisualStudioInstallation
 	{

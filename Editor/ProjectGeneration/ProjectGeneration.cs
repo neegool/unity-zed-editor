@@ -17,7 +17,7 @@ using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
 
-namespace Microsoft.Unity.VisualStudio.Editor
+namespace Neegool.Unity.Zed.Editor
 {
 	public enum ScriptingLanguage
 	{
@@ -158,7 +158,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 
 		private void RefreshCurrentInstallation()
 		{
-			var editor = CodeEditor.CurrentEditor as VisualStudioEditor;
+			var editor = CodeEditor.CurrentEditor as ZedEditor;
 			editor?.TryGetVisualStudioInstallationForPath(CodeEditor.CurrentEditorInstallation, lookupDiscoveredInstallations: true, out m_CurrentInstallation);
 		}
 
