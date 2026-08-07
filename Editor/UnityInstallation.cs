@@ -62,5 +62,11 @@ namespace Microsoft.Unity.VisualStudio.Editor
 #endif
 		}
 
+		internal static string PackageVersion()
+		{
+			var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(UnityInstallation).Assembly);
+			return package.version;
+		}
+
 	}
 }

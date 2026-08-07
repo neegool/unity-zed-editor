@@ -35,21 +35,6 @@ namespace Microsoft.Unity.VisualStudio.Editor
 		public abstract void CreateExtraFiles(string projectDirectory);
 		public abstract bool Open(string path, int line, int column, string solutionPath);
 
-		protected Version GetLatestLanguageVersionSupported(VersionPair[] versions)
-		{
-			if (versions != null)
-			{
-				foreach (var entry in versions)
-				{
-					if (Version >= entry.IdeVersion)
-						return entry.LanguageVersion;
-				}
-			}
-
-			// default to 7.0
-			return new Version(7, 0);
-		}
-
 		protected static string[] GetAnalyzers(string path)
 		{
 			var analyzersDirectory = FileUtility.GetAbsolutePath(IOPath.Combine(path, "Analyzers"));

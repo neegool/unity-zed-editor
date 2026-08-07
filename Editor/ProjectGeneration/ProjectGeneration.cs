@@ -724,7 +724,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 				FlavoringProjectType = projectType + ":" + (int)projectType,
 				FlavoringBuildTarget = EditorUserBuildSettings.activeBuildTarget + ":" + (int)EditorUserBuildSettings.activeBuildTarget,
 				FlavoringUnityVersion = Application.unityVersion,
-				FlavoringPackageVersion = VisualStudioIntegration.PackageVersion(),
+				FlavoringPackageVersion = UnityInstallation.PackageVersion(),
 			};
 
 			SetAnalyzerAndSourceGeneratorProperties(assembly, responseFileData, projectProperties);

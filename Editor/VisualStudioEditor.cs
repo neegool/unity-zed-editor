@@ -5,7 +5,6 @@
  *--------------------------------------------------------------------------------------------*/
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEditor;
@@ -39,28 +38,6 @@ namespace Microsoft.Unity.VisualStudio.Editor
 
 			_discoverInstallations = AsyncOperation<Dictionary<string, IVisualStudioInstallation>>.Run(DiscoverInstallations);
 		}
-
-#if UNITY_2019_4_OR_NEWER && !UNITY_2020
-		[InitializeOnLoadMethod]
-		static void LegacyVisualStudioCodePackageDisabler()
-		{
-			// disable legacy Visual Studio Code packages
-			var editor = CodeEditor.Editor.GetCodeEditorForPath("code.cmd");
-			if (editor == null)
-				return;
-
-			if (editor is VisualStudioEditor)
-				return;
-
-			// only disable the com.unity.ide.vscode package
-			var assembly = editor.GetType().Assembly;
-			var assemblyName = assembly.GetName().Name;
-			if (assemblyName != "Unity.VSCode.Editor")
-				return;
-
-			CodeEditor.Unregister(editor);
-		}
-#endif
 
 		private static Dictionary<string, IVisualStudioInstallation> DiscoverInstallations()
 		{
@@ -171,24 +148,6 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			if (TryGetVisualStudioInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation))
 			{
 				installation.ProjectGenerator.SyncIfNeeded(addedFiles.Union(deletedFiles).Union(movedFiles).Union(movedFromFiles), importedFiles);
-			}
-
-			foreach (var file in importedFiles.Where(a => Path.GetExtension(a) == ".pdb"))
-			{
-				var pdbFile = FileUtility.GetAssetFullPath(file);
-
-				// skip Unity packages like com.unity.ext.nunit
-				if (pdbFile.IndexOf($"{Path.DirectorySeparatorChar}com.unity.", StringComparison.OrdinalIgnoreCase) > 0)
-					continue;
-
-				var asmFile = Path.ChangeExtension(pdbFile, ".dll");
-				if (!File.Exists(asmFile) || !Image.IsAssembly(asmFile))
-					continue;
-
-				if (Symbols.IsPortableSymbolFile(pdbFile))
-					continue;
-
-				Debug.LogWarning($"Unity is only able to load mdb or portable-pdb symbols. {file} is using a legacy pdb format.");
 			}
 		}
 

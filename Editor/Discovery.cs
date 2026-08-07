@@ -13,39 +13,24 @@ namespace Microsoft.Unity.VisualStudio.Editor
 	{
 		public static IEnumerable<IVisualStudioInstallation> GetVisualStudioInstallations()
 		{
-#if UNITY_EDITOR_WIN
-			foreach (var installation in VisualStudioForWindowsInstallation.GetVisualStudioInstallations())
-				yield return installation;
-#endif
-
-			foreach (var installation in VisualStudioCodeInstallation.GetVisualStudioInstallations())
-				yield return installation;
+			return VisualStudioCodeInstallation.GetVisualStudioInstallations();
 		}
 
 		public static bool TryDiscoverInstallation(string editorPath, out IVisualStudioInstallation installation)
 		{
 			try
 			{
-#if UNITY_EDITOR_WIN
-				if (VisualStudioForWindowsInstallation.TryDiscoverInstallation(editorPath, out installation))
-					return true;
-#endif
-				if (VisualStudioCodeInstallation.TryDiscoverInstallation(editorPath, out installation))
-					return true;
+				return VisualStudioCodeInstallation.TryDiscoverInstallation(editorPath, out installation);
 			}
 			catch (IOException)
 			{
 				installation = null;
+				return false;
 			}
-
-			return false;
 		}
 
 		public static void Initialize()
 		{
-#if UNITY_EDITOR_WIN
-			VisualStudioForWindowsInstallation.Initialize();
-#endif
 			VisualStudioCodeInstallation.Initialize();
 		}
 	}
