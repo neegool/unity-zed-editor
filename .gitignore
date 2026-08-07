@@ -1,0 +1,9 @@
+# Compile-check artifacts
+tools/.compile-check.rsp
+tools/.compile-check.dll
+
+# Unity scratch project used for end-to-end verification
+/.scratch/
+
+# Subagent-driven development scratch
+/.superpowers/
