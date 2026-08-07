@@ -1,0 +1,5 @@
+* text=auto
+
+# Shell scripts must stay LF: bash chokes on \r in commands, and this repo's
+# verification harness is shell.
+*.sh text eol=lf
