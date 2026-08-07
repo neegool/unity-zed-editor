@@ -29,21 +29,42 @@ LOG="$ROOT/tools/.e2e-check.log"
 # The lockfile is 0 bytes and lingers after a crash, so probe writability rather
 # than mere existence.
 LOCK="$PROJECT/Temp/UnityLockfile"
-if [ -f "$LOCK" ] && ! : > "$LOCK" 2>/dev/null; then
+if [ -f "$LOCK" ] && ! : >> "$LOCK" 2>/dev/null; then
   echo "e2e-check: ABORTED - Unity already has $PROJECT open" >&2
   exit 2
 fi
 
-"$UNITY" -batchmode -quit -projectPath "$PROJECT" \
-  -executeMethod Neegool.Unity.Zed.Editor.Cli.GenerateSolution \
-  -logFile - > "$LOG" 2>&1 || true
+# Clear prior output first. The success check below tests for file existence, so
+# leftovers from an earlier run would let a failed run report OK.
+rm -f "$PROJECT"/*.csproj "$PROJECT"/*.sln "$PROJECT"/*.slnx
+
+# Unity 6000.0.79f1 intermittently crashes during startup with a baselib
+# semaphore assertion, triggered by its package-manager IPC child dropping
+# ("IPCStream (Upm-NNNN): IPC stream failed to read"). Measured at roughly half
+# of runs on this machine, entirely independent of the package under test.
+# Retry rather than let an Editor bug read as a package defect.
+ATTEMPTS=3
+attempt=1
+while :; do
+  "$UNITY" -batchmode -quit -projectPath "$PROJECT" \
+    -executeMethod Neegool.Unity.Zed.Editor.Cli.GenerateSolution \
+    -logFile - > "$LOG" 2>&1 || true
+
+  grep -qi "Crash!!!\|another Unity instance is running\|Aborting batchmode" "$LOG" || break
+
+  if [ "$attempt" -ge "$ATTEMPTS" ]; then
+    echo "e2e-check: ABORTED - Unity failed to start on $ATTEMPTS attempts (see $LOG)" >&2
+    exit 2
+  fi
+
+  echo "e2e-check: Unity crashed on attempt $attempt, retrying..." >&2
+  # A wedged licensing client is one reproducible trigger; clearing it helps.
+  powershell.exe -NoProfile -Command \
+    "Stop-Process -Name Unity.Licensing.Client -Force -ErrorAction SilentlyContinue" 2>/dev/null || true
+  attempt=$((attempt + 1))
+done
 
 grep -iE "zed|error|exception|\.csproj|\.sln" "$LOG" || true
-
-if grep -qi "another Unity instance is running\|Aborting batchmode" "$LOG"; then
-  echo "e2e-check: ABORTED - Unity exited before running (see $LOG)" >&2
-  exit 2
-fi
 
 echo "--- generated files ---"
 # Unity 6000's SDK-style generator emits .slnx, not .sln. Accept either: the
