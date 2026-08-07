@@ -8,12 +8,12 @@ using Unity.CodeEditor;
 
 namespace Neegool.Unity.Zed.Editor
 {
-	internal static class Cli
+	public static class Cli
 	{
 		internal static void Log(string message)
 		{
 			// Use writeline here, instead of UnityEngine.Debug.Log to not include the stacktrace in the editor.log
-			Console.WriteLine($"[VisualStudio.Editor.{nameof(Cli)}] {message}");
+			Console.WriteLine($"[Zed.Editor.{nameof(Cli)}] {message}");
 		}
 
 		internal static string GetInstallationDetails(IVisualStudioInstallation installation)
@@ -34,7 +34,7 @@ namespace Neegool.Unity.Zed.Editor
 			}
 		}
 
-		internal static void GenerateSolution()
+		public static void GenerateSolution()
 		{
 			if (CodeEditor.CurrentEditor is ZedEditor vse)
 			{

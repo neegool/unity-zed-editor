@@ -1,6 +1,7 @@
-# Compile-check artifacts
+# Verification harness artifacts
 tools/.compile-check.rsp
 tools/.compile-check.dll
+tools/.e2e-check.log
 
 # Unity scratch project used for end-to-end verification
 /.scratch/
