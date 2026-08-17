@@ -99,6 +99,9 @@ namespace Neegool.Unity.Zed.Editor
 		// Zed ships two executables: the multi-hundred-megabyte GUI at <install>/Zed.exe and a small
 		// CLI launcher at <install>/bin/Zed.exe. Only the launcher parses path:line:column, and the
 		// GUI is what a user browsing to the install folder will pick.
+		//
+		// Derived from ZedUtils.ResolveLauncherPath in zed-unity, MIT licensed:
+		// https://github.com/gamebayoumy/zed-unity
 		internal static string NormalizeToLauncher(string editorPath)
 		{
 			if (string.IsNullOrEmpty(editorPath))
@@ -199,6 +202,9 @@ namespace Neegool.Unity.Zed.Editor
 			}
 		}
 
+		// Install locations taken from ZedUtils.GetPossibleZedPaths in zed-unity, MIT licensed
+		// (https://github.com/gamebayoumy/zed-unity), pruned to the ones Zed's own installers
+		// write. Anything else a user has is reachable through PATH below.
 		private static IEnumerable<string> GetCandidates()
 		{
 #if UNITY_EDITOR_WIN
