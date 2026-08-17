@@ -21,7 +21,7 @@ namespace Neegool.Unity.Zed.Editor
 			.Select(v => v.ToCodeEditorInstallation())
 			.ToArray();
 
-		private static readonly AsyncOperation<Dictionary<string, IVisualStudioInstallation>> _discoverInstallations;
+		private static readonly AsyncOperation<Dictionary<string, IZedInstallation>> _discoverInstallations;
 
 		static ZedEditor()
 		{
@@ -31,21 +31,21 @@ namespace Neegool.Unity.Zed.Editor
 			Discovery.Initialize();
 			CodeEditor.Register(new ZedEditor());
 
-			_discoverInstallations = AsyncOperation<Dictionary<string, IVisualStudioInstallation>>.Run(DiscoverInstallations);
+			_discoverInstallations = AsyncOperation<Dictionary<string, IZedInstallation>>.Run(DiscoverInstallations);
 		}
 
-		private static Dictionary<string, IVisualStudioInstallation> DiscoverInstallations()
+		private static Dictionary<string, IZedInstallation> DiscoverInstallations()
 		{
 			try
 			{
 				return Discovery
-					.GetVisualStudioInstallations()
+					.GetZedInstallations()
 					.ToDictionary(i => FileUtility.GetAbsolutePath(i.Path), i => i);
 			}
 			catch (Exception ex)
 			{
-				Debug.LogError($"Error detecting Visual Studio installations: {ex}");
-				return new Dictionary<string, IVisualStudioInstallation>();
+				Debug.LogError($"Error detecting Zed installations: {ex}");
+				return new Dictionary<string, IZedInstallation>();
 			}
 		}
 
@@ -55,7 +55,7 @@ namespace Neegool.Unity.Zed.Editor
 		// keeping it for now given it is public, so we need a major bump to remove it 
 		public void CreateIfDoesntExist()
 		{
-			if (!TryGetVisualStudioInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation)) 
+			if (!TryGetZedInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation)) 
 				return;
 
 			var generator = installation.ProjectGenerator;
@@ -67,7 +67,7 @@ namespace Neegool.Unity.Zed.Editor
 		{
 		}
 
-		internal virtual bool TryGetVisualStudioInstallationForPath(string editorPath, bool lookupDiscoveredInstallations, out IVisualStudioInstallation installation)
+		internal virtual bool TryGetZedInstallationForPath(string editorPath, bool lookupDiscoveredInstallations, out IZedInstallation installation)
 		{
 			editorPath = FileUtility.GetAbsolutePath(editorPath);
 
@@ -80,7 +80,7 @@ namespace Neegool.Unity.Zed.Editor
 
 		public virtual bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)
 		{
-			var result = TryGetVisualStudioInstallationForPath(editorPath, lookupDiscoveredInstallations: false, out var vsi);
+			var result = TryGetZedInstallationForPath(editorPath, lookupDiscoveredInstallations: false, out var vsi);
 			installation = vsi?.ToCodeEditorInstallation() ?? default;
 			return result;
 		}
@@ -90,7 +90,7 @@ namespace Neegool.Unity.Zed.Editor
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
 
-			if (!TryGetVisualStudioInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation))
+			if (!TryGetZedInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation))
 				return;
 
 			var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(GetType().Assembly);
@@ -118,7 +118,7 @@ namespace Neegool.Unity.Zed.Editor
 			EditorGUI.indentLevel--;
 		}
 
-		private static void RegenerateProjectFiles(IVisualStudioInstallation installation)
+		private static void RegenerateProjectFiles(IZedInstallation installation)
 		{
 			var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
 			rect.width = 252;
@@ -128,7 +128,7 @@ namespace Neegool.Unity.Zed.Editor
 			}
 		}
 
-		private static void SettingsButton(ProjectGenerationFlag preference, string guiMessage, string toolTip, IVisualStudioInstallation installation)
+		private static void SettingsButton(ProjectGenerationFlag preference, string guiMessage, string toolTip, IZedInstallation installation)
 		{
 			var generator = installation.ProjectGenerator;
 			var prevValue = generator.AssemblyNameProvider.ProjectGenerationFlag.HasFlag(preference);
@@ -140,7 +140,7 @@ namespace Neegool.Unity.Zed.Editor
 
 		public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles, string[] importedFiles)
 		{
-			if (TryGetVisualStudioInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation))
+			if (TryGetZedInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation))
 			{
 				installation.ProjectGenerator.SyncIfNeeded(addedFiles.Union(deletedFiles).Union(movedFiles).Union(movedFromFiles), importedFiles);
 			}
@@ -148,7 +148,7 @@ namespace Neegool.Unity.Zed.Editor
 
 		public void SyncAll()
 		{
-			if (TryGetVisualStudioInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation))
+			if (TryGetZedInstallationForPath(CodeEditor.CurrentEditorInstallation, true, out var installation))
 			{
 				installation.ProjectGenerator.Sync();
 			}
@@ -171,7 +171,7 @@ namespace Neegool.Unity.Zed.Editor
 			var editorPath = CodeEditor.CurrentEditorInstallation;
 
 			if (!Discovery.TryDiscoverInstallation(editorPath, out var installation)) {
-				Debug.LogWarning($"Visual Studio executable {editorPath} is not found. Please change your settings in Edit > Preferences > External Tools.");
+				Debug.LogWarning($"Zed executable {editorPath} was not found. Set the path in Edit > Preferences > External Tools.");
 				return false;
 			}
 
@@ -183,12 +183,6 @@ namespace Neegool.Unity.Zed.Editor
 				Debug.LogWarning($"You are trying to open {path} outside a generated project. This might cause problems with IntelliSense and debugging. To avoid this, you can change your .csproj preferences in Edit > Preferences > External Tools and enable {GetProjectGenerationFlagDescription(missingFlag)} generation.");
 
 			var solution = GetOrGenerateSolutionFile(generator);
-			return installation.Open(path, line, column, solution);
-		}
-
-		private static bool OpenFromInstallation(IVisualStudioInstallation installation, string path, int line, int column)
-		{
-			var solution = installation.ProjectGenerator.SolutionFile();
 			return installation.Open(path, line, column, solution);
 		}
 

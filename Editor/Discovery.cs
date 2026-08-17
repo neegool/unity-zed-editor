@@ -11,16 +11,16 @@ namespace Neegool.Unity.Zed.Editor
 {
 	internal static class Discovery
 	{
-		public static IEnumerable<IVisualStudioInstallation> GetVisualStudioInstallations()
+		public static IEnumerable<IZedInstallation> GetZedInstallations()
 		{
-			return VisualStudioCodeInstallation.GetVisualStudioInstallations();
+			return ZedInstallation.GetZedInstallations();
 		}
 
-		public static bool TryDiscoverInstallation(string editorPath, out IVisualStudioInstallation installation)
+		public static bool TryDiscoverInstallation(string editorPath, out IZedInstallation installation)
 		{
 			try
 			{
-				return VisualStudioCodeInstallation.TryDiscoverInstallation(editorPath, out installation);
+				return ZedInstallation.TryDiscoverInstallation(editorPath, out installation);
 			}
 			catch (IOException)
 			{
@@ -31,7 +31,7 @@ namespace Neegool.Unity.Zed.Editor
 
 		public static void Initialize()
 		{
-			VisualStudioCodeInstallation.Initialize();
+			ZedInstallation.Initialize();
 		}
 	}
 }

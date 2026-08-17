@@ -55,7 +55,7 @@ namespace Neegool.Unity.Zed.Editor
 		internal readonly IAssemblyNameProvider m_AssemblyNameProvider;
 		readonly IFileIO m_FileIOProvider;
 		readonly IGUIDGenerator m_GUIDGenerator;
-		IVisualStudioInstallation m_CurrentInstallation;
+		IZedInstallation m_CurrentInstallation;
 
 		public ProjectGeneration() : this(Directory.GetParent(Application.dataPath).FullName)
 		{
@@ -139,7 +139,7 @@ namespace Neegool.Unity.Zed.Editor
 			}
 		}
 
-		private void CreateExtraFiles(IVisualStudioInstallation installation)
+		private void CreateExtraFiles(IZedInstallation installation)
 		{
 			installation?.CreateExtraFiles(ProjectDirectory);
 		}
@@ -159,7 +159,7 @@ namespace Neegool.Unity.Zed.Editor
 		private void RefreshCurrentInstallation()
 		{
 			var editor = CodeEditor.CurrentEditor as ZedEditor;
-			editor?.TryGetVisualStudioInstallationForPath(CodeEditor.CurrentEditorInstallation, lookupDiscoveredInstallations: true, out m_CurrentInstallation);
+			editor?.TryGetZedInstallationForPath(CodeEditor.CurrentEditorInstallation, lookupDiscoveredInstallations: true, out m_CurrentInstallation);
 		}
 
 		static ProfilerMarker solutionSyncMarker = new ProfilerMarker("SolutionSynchronizerSync");
@@ -649,7 +649,7 @@ namespace Neegool.Unity.Zed.Editor
 			if (m_CurrentInstallation == null || !m_CurrentInstallation.SupportsAnalyzers)
 				return;
 
-			// Analyzers provided by VisualStudio
+			// Analyzers provided by the IDE
 			var analyzers = new List<string>(m_CurrentInstallation.GetAnalyzers());
 			var additionalFilePaths = new List<string>();
 			var rulesetPath = string.Empty;
