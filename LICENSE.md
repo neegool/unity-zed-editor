@@ -1,7 +1,13 @@
-Visual Studio Editor copyright © 2019 Unity Technologies
-Visual Studio Editor copyright © 2019 Microsoft Corporation. All rights reserved.
-
 MIT License
+
+Copyright (c) 2026 Nigel Rodriguez
+
+This package is a derivative work of the Visual Studio Editor package for Unity,
+distributed under the MIT License, whose notices are retained below as that
+license requires:
+
+> Visual Studio Editor copyright © 2019 Unity Technologies
+> Visual Studio Editor copyright © 2019 Microsoft Corporation. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

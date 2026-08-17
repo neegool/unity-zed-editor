@@ -1,7 +1,8 @@
 /*---------------------------------------------------------------------------------------------
+ *  Copyright (c) 2026 Nigel Rodriguez.
  *  Copyright (c) Unity Technologies.
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 using System;
 using System.IO;
@@ -23,12 +24,6 @@ namespace Neegool.Unity.Zed.Editor
 #else
 			return Path.GetFullPath(path);
 #endif
-		}
-
-		public static string GetPackageAssetFullPath(params string[] components)
-		{
-			// Unity has special IO handling of Packages and will resolve those path to the right package location
-			return GetAbsolutePath(Path.Combine("Packages", "com.unity.ide.visualstudio", Path.Combine(components)));
 		}
 
 		public static string GetAssetFullPath(string asset)

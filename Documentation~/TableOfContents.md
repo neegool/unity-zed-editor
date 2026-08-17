@@ -1,2 +1,2 @@
-* [About Visual Studio Editor](index.md)
-* [Using the Visual Studio Editor package](using-visual-studio-editor.md)
+* [About Zed Editor](index.md)
+* [Using the Zed Editor package](using-zed-editor.md)

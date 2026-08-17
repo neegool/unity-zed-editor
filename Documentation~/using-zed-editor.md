@@ -1,13 +1,10 @@
-# Using the Visual Studio Editor package
+# Using the Zed Editor package
 
-To use the package, go to **Edit** > **Preferences** > **External Tools** > **External Script Editor** and select the version of **Visual Studio** you have installed. When you select this option, the window reloads and displays settings that control production of .csproj files.
-
-![External Tools tab in the Preferences window](Images/vs-external-tools.png)
+To use the package, go to **Edit** > **Preferences** > **External Tools** > **External Script Editor** and select **Zed**. When you select this option, the window reloads and displays settings that control production of .csproj files.
 
 ## Generate .csproj files
 
-Each setting in the table below enables or disables the production of .csproj files for a different type of package.When you click **Regenerate project files**, Unity updates the existing .csproj files and creates the necessary new ones based on the settings you choose.
-
+Each setting in the table below enables or disables the production of .csproj files for a different type of package. When you click **Regenerate project files**, Unity updates the existing .csproj files and creates the necessary new ones based on the settings you choose.
 
 These settings control whether to generate .csproj files for any installed packages. For more information on how to install packages, see [Adding and removing packages](https://docs.unity3d.com/Manual/upm-ui-actions.html).
 
@@ -20,4 +17,7 @@ These settings control whether to generate .csproj files for any installed packa
 |       **Built-in packages** | Any package that is already installed as part of the default Unity installation. |
 |       **Tarball packages** | Any package you install from a GZip tarball archive on the local machine, outside of your Unity project. |
 |       **Unknown packages** | Any package which Unity cannot determine an origin for. This could be because the package doesn’t list its origin, or that Unity doesn’t recognize the origin listed. |
-|       **Player projects** | For each player project, generate an additional .csproj file named ‘originalProjectName.Player.csproj’. This allows different project types to have their code included in Visual Studio’s systems, such as assembly definitions or testing suites. |
+
+## Opening scripts
+
+Double-clicking a script in Unity opens it in the Zed window that already holds the project, at the correct line and column. If no window has the project open yet, the package opens the project folder first and then the file, so the script always lands inside the project workspace rather than in a window of its own.

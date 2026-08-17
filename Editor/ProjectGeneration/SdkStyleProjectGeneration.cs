@@ -1,7 +1,8 @@
 /*---------------------------------------------------------------------------------------------
+ *  Copyright (c) 2026 Nigel Rodriguez.
  *  Copyright (c) Unity Technologies.
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 using System.Collections.Generic;
@@ -14,8 +15,6 @@ namespace Neegool.Unity.Zed.Editor
 {
 	internal class SdkStyleProjectGeneration : ProjectGeneration
 	{
-		internal override GeneratorStyle Style => GeneratorStyle.SDK;
-
 		internal class SdkStyleAssemblyNameProvider : AssemblyNameProvider
 		{
 			// disable PlayerGeneration with SdkStyle projects
@@ -29,24 +28,6 @@ namespace Neegool.Unity.Zed.Editor
 			new GUIDProvider())
 		{
 		}
-
-		internal static readonly string[] SupportedCapabilities = new string[]
-		{
-			"Unity",                               // Allows to load the VSTU package and activate Unity specific features
-			"EnableOnDemandExcludedFolderLoading", // Lazy-load excluded folders in VS (useful for huge projects with many side assets)
-		};
-
-		internal static readonly string[] UnsupportedCapabilities = new string[]
-		{
-			"LaunchProfiles",
-			"SharedProjectReferences",
-			"ReferenceManagerSharedProjects",
-			"ReferenceManagerProjects",
-			"COMReferences",
-			"ReferenceManagerCOM",
-			"AssemblyReferences",
-			"ReferenceManagerAssemblies",
-		};
 
 		internal override void GetProjectHeader(ProjectProperties properties, out StringBuilder headerBuilder)
 		{
@@ -66,9 +47,8 @@ namespace Neegool.Unity.Zed.Editor
 			headerBuilder.Append($"    <OutputPath>").Append(properties.OutputPath.NormalizePathSeparators()).Append(@"</OutputPath>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"  </PropertyGroup>").Append(k_WindowsNewline);
 
-			// Supported capabilities
-			GetCapabilityBlock(headerBuilder, "Sdk.props", "Include", SupportedCapabilities);
-		
+			AppendSdkImport(headerBuilder, "Sdk.props");
+
 			headerBuilder.Append(@"  <PropertyGroup>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <EnableDefaultItems>false</EnableDefaultItems>").Append(k_WindowsNewline);
@@ -94,7 +74,6 @@ namespace Neegool.Unity.Zed.Editor
 			headerBuilder.Append(@"    <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"  </PropertyGroup>").Append(k_WindowsNewline);
 
-			GetProjectHeaderVstuFlavoring(properties, headerBuilder, false);
 			GetProjectHeaderAnalyzers(properties, headerBuilder);
 		}
 
@@ -107,21 +86,16 @@ namespace Neegool.Unity.Zed.Editor
 
 		internal override void GetProjectFooter(StringBuilder footerBuilder)
 		{
-			// Unsupported capabilities
-			GetCapabilityBlock(footerBuilder, "Sdk.targets", "Remove", UnsupportedCapabilities);
+			AppendSdkImport(footerBuilder, "Sdk.targets");
 
 			footerBuilder.Append("</Project>").Append(k_WindowsNewline);
 		}
 
-		internal static void GetCapabilityBlock(StringBuilder footerBuilder, string import, string attribute, string[] capabilities)
+		// The project opens with a bare <Project> element rather than an Sdk attribute, so the SDK's
+		// props and targets have to be imported explicitly around the body.
+		internal static void AppendSdkImport(StringBuilder builder, string import)
 		{
-			footerBuilder.Append($@"  <Import Project=""{import}"" Sdk=""Microsoft.NET.Sdk"" />").Append(k_WindowsNewline);
-			footerBuilder.Append(@"  <ItemGroup>").Append(k_WindowsNewline);
-			foreach (var capability in capabilities)
-			{
-				footerBuilder.Append($@"    <ProjectCapability {attribute}=""{capability}"" />").Append(k_WindowsNewline);
-			}
-			footerBuilder.Append(@"  </ItemGroup>").Append(k_WindowsNewline);
+			builder.Append($@"  <Import Project=""{import}"" Sdk=""Microsoft.NET.Sdk"" />").Append(k_WindowsNewline);
 		}
 
 		internal override string SolutionFileImpl()

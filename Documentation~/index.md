@@ -1,30 +1,29 @@
-# Code Editor Package for Visual Studio
+# Code Editor Package for Zed
 
-## About Visual Studio Editor
+## About Zed Editor
 
-The Visual Studio Editor package provides the Unity Editor with support for Unity-specific features from the [Visual Studio Tools for Unity](https://docs.microsoft.com/en-us/visualstudio/gamedev/unity/get-started/visual-studio-tools-for-unity) extension in [Visual Studio](https://visualstudio.microsoft.com/) and the [Unity for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=visualstudiotoolsforunity.vstuc) extension in [Visual Studio Code](https://code.visualstudio.com/). These include IntelliSense auto-complete suggestions, C# editing, and debugging.
+The Zed Editor package lets you use [Zed](https://zed.dev/) as the external script
+editor for a Unity project. It discovers installed copies of Zed, generates the
+SDK-style `.csproj` and `.slnx` files that Zed's C# language server reads, and
+opens scripts at the right line and column inside the project's Zed workspace.
+
+C# support in Zed itself comes from its C# extension, which runs
+roslyn-language-server against the generated project files. This package produces
+those files; it does not install or configure the extension.
 
 ## Installation
 
-This package is a built-in package and installed by default.
+Install through the Package Manager with **Add package from git URL**:
 
-**Note**: If you’re using a version of the Unity Editor before 2019.4, you’ll need to install this package through the package manager.
+```
+https://github.com/neegool/unity-zed-editor.git
+```
 
 ## Requirements
 
-This version of the Visual Studio Editor package is compatible with the following versions of the Unity Editor:
-
-* 2019.4 and later
-
-To use this package, you must have the following third-party products installed:
-
-* **On Windows**: Visual Studio 2019 version 16.9 or newer with [Visual Studio Tools for Unity](https://docs.microsoft.com/en-us/visualstudio/gamedev/unity/get-started/visual-studio-tools-for-unity) 4.0.9 or newer.
-* **On macOS**: Visual Studio Code with [Unity for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=visualstudiotoolsforunity.vstuc) 0.9.0 or newer.
-
-For more information on using Visual Studio with Unity, refer to Microsoft's [Visual Studio Tools for Unity](https://docs.microsoft.com/en-us/visualstudio/gamedev/unity/get-started/visual-studio-tools-for-unity) documentation.
-
-For more information on using VS Code with Unity, refer to the Visual Studio Code [Unity development with VS code](https://code.visualstudio.com/docs/other/unity) documentation.
+* Unity 2021.3 and later
+* Zed 1.14 or newer, with its C# extension installed
 
 ## Submitting issues
 
-This package is maintained by Microsoft and Unity. Submit issues directly from the **Help** menu in Visual Studio (**Help** > **Submit Feedback** > **Report a Problem**) or Visual Studio Code (**Help** > **Report an Issue**). Unity will make this package accessible to the public on GitHub in the future.
+Report problems at <https://github.com/neegool/unity-zed-editor/issues>.

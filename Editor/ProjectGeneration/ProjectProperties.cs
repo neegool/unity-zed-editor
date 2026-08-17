@@ -20,11 +20,5 @@ namespace Neegool.Unity.Zed.Editor
 		// RSP alterable
 		public string[] Defines { get; set; } = Array.Empty<string>();
 		public bool Unsafe { get; set; } = false;
-
-		// VSTU Flavouring
-		public string FlavoringProjectType { get; set; } = string.Empty;
-		public string FlavoringBuildTarget { get; set; } = string.Empty;
-		public string FlavoringUnityVersion { get; set; } = string.Empty;
-		public string FlavoringPackageVersion { get; set; } = string.Empty;
 	}
 }

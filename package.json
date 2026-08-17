@@ -4,6 +4,11 @@
   "description": "Code editor integration for supporting Zed as code editor for Unity. Generates csproj and sln files for roslyn-language-server, discovers Zed installations, and opens files at a given line and column.",
   "version": "1.0.0",
   "unity": "2021.3",
+  "license": "MIT",
+  "author": {
+    "name": "Nigel Rodriguez",
+    "url": "https://github.com/neegool"
+  },
   "keywords": [
     "zed",
     "editor",

@@ -1,7 +1,8 @@
 /*---------------------------------------------------------------------------------------------
+ *  Copyright (c) 2026 Nigel Rodriguez.
  *  Copyright (c) Unity Technologies.
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 using System;
 using System.Collections.Generic;
@@ -36,18 +37,13 @@ namespace Neegool.Unity.Zed.Editor
 		IAssemblyNameProvider AssemblyNameProvider { get; }
 	}
 
-	public class ProjectGeneration : IGenerator
+	public abstract class ProjectGeneration : IGenerator
 	{
-		// do not remove because of the Validation API, used in LegacyStyleProjectGeneration
-		public static readonly string MSBuildNamespaceUri = "http://schemas.microsoft.com/developer/msbuild/2003";
-
 		public IAssemblyNameProvider AssemblyNameProvider => m_AssemblyNameProvider;
 		public string ProjectDirectory { get; }
 
 		// Use this to have the same newline ending on all platforms for consistency.
 		internal const string k_WindowsNewline = "\r\n";
-
-		const string m_SolutionProjectEntryTemplate = @"Project(""{{{0}}}"") = ""{1}"", ""{2}"", ""{{{3}}}""{4}EndProject";
 
 		HashSet<string> _supportedExtensions;
 
@@ -76,8 +72,6 @@ namespace Neegool.Unity.Zed.Editor
 			SetupProjectSupportedExtensions();
 		}
 
-		internal virtual GeneratorStyle Style => GeneratorStyle.Legacy;
-
 		/// <summary>
 		/// Syncs the scripting solution if any affected files are relevant.
 		/// </summary>
@@ -94,7 +88,7 @@ namespace Neegool.Unity.Zed.Editor
 		{
 			using (solutionSyncMarker.Auto())
 			{
-				// We need the exact VS version/capabilities to tweak project generation (analyzers/langversion)
+				// We need the exact editor version/capabilities to tweak project generation (analyzers/langversion)
 				RefreshCurrentInstallation();
 
 				SetupProjectSupportedExtensions();
@@ -166,15 +160,14 @@ namespace Neegool.Unity.Zed.Editor
 
 		public void Sync()
 		{
-			// We need the exact VS version/capabilities to tweak project generation (analyzers/langversion)
+			// We need the exact editor version/capabilities to tweak project generation (analyzers/langversion)
 			RefreshCurrentInstallation();
 
 			SetupProjectSupportedExtensions();
 
 			(m_AssemblyNameProvider as AssemblyNameProvider)?.ResetPackageInfoCache();
 
-			// See https://devblogs.microsoft.com/setup/configure-visual-studio-across-your-organization-with-vsconfig/
-			// We create a .vsconfig file to make sure our ManagedGame workload is installed
+			// Lets the installation drop whatever per-project files it needs alongside the csproj.
 			CreateExtraFiles(m_CurrentInstallation);
 
 			var externalCodeAlreadyGeneratedProjects = OnPreGeneratingCSProjectFiles();
@@ -601,13 +594,13 @@ namespace Neegool.Unity.Zed.Editor
 			if (!string.IsNullOrEmpty(langVersion))
 				return langVersion;
 
-			var targetLanguageVersion = "latest"; // danger: latest is not the same absolute value depending on the VS version.
+			var targetLanguageVersion = "latest"; // danger: latest is not the same absolute value depending on the toolchain version.
 			if (m_CurrentInstallation != null)
 			{
 				var vsLanguageSupport = m_CurrentInstallation.LatestLanguageVersionSupported;
 				var unityLanguageSupport = UnityInstallation.LatestLanguageVersionSupported(assembly);
 
-				// Use the minimal supported version between VS and Unity, so that compilation will work in both
+				// Use the minimal supported version between the editor and Unity, so that compilation will work in both
 				targetLanguageVersion = (vsLanguageSupport <= unityLanguageSupport ? vsLanguageSupport : unityLanguageSupport).ToString(2); // (major, minor) only
 			}
 
@@ -708,8 +701,6 @@ namespace Neegool.Unity.Zed.Editor
 			out StringBuilder headerBuilder
 		)
 		{
-			var projectType = ProjectTypeOf(assembly.name);
-
 			var projectProperties = new ProjectProperties
 			{
 				ProjectGuid = ProjectGuid(assembly),
@@ -720,39 +711,11 @@ namespace Neegool.Unity.Zed.Editor
 				// RSP alterable
 				Defines = assembly.defines.Concat(responseFileData.SelectMany(x => x.Defines)).Distinct().ToArray(),
 				Unsafe = assembly.compilerOptions.AllowUnsafeCode | responseFileData.Any(x => x.Unsafe),
-				// VSTU Flavoring
-				FlavoringProjectType = projectType + ":" + (int)projectType,
-				FlavoringBuildTarget = EditorUserBuildSettings.activeBuildTarget + ":" + (int)EditorUserBuildSettings.activeBuildTarget,
-				FlavoringUnityVersion = Application.unityVersion,
-				FlavoringPackageVersion = UnityInstallation.PackageVersion(),
 			};
 
 			SetAnalyzerAndSourceGeneratorProperties(assembly, responseFileData, projectProperties);
 
 			GetProjectHeader(projectProperties, out headerBuilder);
-		}
-
-		private enum ProjectType
-		{
-			GamePlugins = 3,
-			Game = 1,
-			EditorPlugins = 7,
-			Editor = 5,
-		}
-
-		private static ProjectType ProjectTypeOf(string fileName)
-		{
-			var plugins = fileName.Contains("firstpass");
-			var editor = fileName.Contains("Editor");
-
-			if (plugins && editor)
-				return ProjectType.EditorPlugins;
-			if (plugins)
-				return ProjectType.GamePlugins;
-			if (editor)
-				return ProjectType.Editor;
-
-			return ProjectType.Game;
 		}
 
 		internal virtual void GetProjectHeader(ProjectProperties properties, out StringBuilder headerBuilder)
@@ -808,25 +771,6 @@ namespace Neegool.Unity.Zed.Editor
 			}
 		}
 
-		internal void GetProjectHeaderVstuFlavoring(ProjectProperties properties, StringBuilder headerBuilder, bool includeProjectTypeGuids = true)
-		{
-			// Flavoring
-			headerBuilder.Append(@"  <PropertyGroup>").Append(k_WindowsNewline);
-
-			if (includeProjectTypeGuids)
-			{
-				headerBuilder.Append(@"    <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>").Append(k_WindowsNewline);
-			}
-
-			headerBuilder.Append(@"    <UnityProjectGenerator>Package</UnityProjectGenerator>").Append(k_WindowsNewline);
-			headerBuilder.Append(@"    <UnityProjectGeneratorVersion>").Append(properties.FlavoringPackageVersion).Append(@"</UnityProjectGeneratorVersion>").Append(k_WindowsNewline);
-			headerBuilder.Append(@"    <UnityProjectGeneratorStyle>").Append(Style).Append("</UnityProjectGeneratorStyle>").Append(k_WindowsNewline);
-			headerBuilder.Append(@"    <UnityProjectType>").Append(properties.FlavoringProjectType).Append(@"</UnityProjectType>").Append(k_WindowsNewline);
-			headerBuilder.Append(@"    <UnityBuildTarget>").Append(properties.FlavoringBuildTarget).Append(@"</UnityBuildTarget>").Append(k_WindowsNewline);
-			headerBuilder.Append(@"    <UnityVersion>").Append(properties.FlavoringUnityVersion).Append(@"</UnityVersion>").Append(k_WindowsNewline);
-			headerBuilder.Append(@"  </PropertyGroup>").Append(k_WindowsNewline);
-		}
-
 		internal virtual void GetProjectFooter(StringBuilder footerBuilder)
 		{
 		}
@@ -834,47 +778,14 @@ namespace Neegool.Unity.Zed.Editor
 		internal virtual void SyncSolution(IEnumerable<Assembly> assemblies)
 		{
 			if (InvalidCharactersRegexPattern.IsMatch(ProjectDirectory))
-				Debug.LogWarning("Project path contains special characters, which can be an issue when opening Visual Studio");
+				Debug.LogWarning("Project path contains special characters, which can be an issue for language servers reading the solution");
 
 			var solutionFile = SolutionFile();
 			var previousSolution = m_FileIOProvider.Exists(solutionFile) ? SolutionParser.ParseSolutionFile(solutionFile, m_FileIOProvider) : null;
 			SyncSolutionFileIfNotChanged(solutionFile, SolutionText(assemblies, previousSolution));
 		}
 
-		internal virtual string SolutionText(IEnumerable<Assembly> assemblies, Solution previousSolution = null)
-		{
-			const string fileversion = "12.00";
-			const string vsversion = "15";
-
-			var projects = GetSolutionProjects(assemblies, previousSolution);
-			var properties = previousSolution != null ? previousSolution.Properties : null;
-
-			string propertiesText = GetPropertiesText(properties);
-			string projectEntriesText = GetProjectEntriesText(projects);
-
-			// do not generate configurations for SolutionFolders
-			var configurableProjects = projects.Where(p => !p.IsSolutionFolderProjectFactory());
-			string projectConfigurationsText = string.Join(k_WindowsNewline, configurableProjects.Select(p => GetProjectActiveConfigurations(p.ProjectGuid)).ToArray());
-
-			const string solutionText =
-				"" + k_WindowsNewline
-				+ "Microsoft Visual Studio Solution File, Format Version {0}" + k_WindowsNewline
-				+ "# Visual Studio {1}" + k_WindowsNewline
-				+ "{2}" + k_WindowsNewline
-				+ "Global" + k_WindowsNewline
-				+ "\tGlobalSection(SolutionConfigurationPlatforms) = preSolution" + k_WindowsNewline
-				+ "\t\tDebug|Any CPU = Debug|Any CPU" + k_WindowsNewline
-				+ "\t\tRelease|Any CPU = Release|Any CPU" + k_WindowsNewline
-				+ "\tEndGlobalSection" + k_WindowsNewline
-				+ "\tGlobalSection(ProjectConfigurationPlatforms) = postSolution" + k_WindowsNewline
-				+ "{3}" + k_WindowsNewline
-				+ "\tEndGlobalSection" + k_WindowsNewline
-				+ "{4}" + k_WindowsNewline
-				+ "EndGlobal" + k_WindowsNewline
-				+ "";
-
-			return string.Format(solutionText, fileversion, vsversion, projectEntriesText, projectConfigurationsText, propertiesText);
-		}
+		internal abstract string SolutionText(IEnumerable<Assembly> assemblies, Solution previousSolution = null);
 
 		internal List<SolutionProjectEntry> GetSolutionProjects(IEnumerable<Assembly> assemblies, Solution previousSolution = null)
 		{
@@ -903,57 +814,6 @@ namespace Neegool.Unity.Zed.Editor
 			return assemblies.Where(i => ScriptingLanguage.CSharp == ScriptingLanguageFor(i));
 		}
 
-		private static string GetPropertiesText(SolutionProperties[] array)
-		{
-			if (array == null || array.Length == 0)
-			{
-				// HideSolution by default
-				array = new[] {
-					new SolutionProperties() {
-						Name = "SolutionProperties",
-						Type = "preSolution",
-						Entries = new List<KeyValuePair<string,string>>() { new KeyValuePair<string, string> ("HideSolutionNode", "FALSE") }
-					}
-				};
-			}
-			var result = new StringBuilder();
-
-			for (var i = 0; i < array.Length; i++)
-			{
-				if (i > 0)
-					result.Append(k_WindowsNewline);
-
-				var properties = array[i];
-
-				result.Append($"\tGlobalSection({properties.Name}) = {properties.Type}");
-				result.Append(k_WindowsNewline);
-
-				foreach (var entry in properties.Entries)
-				{
-					result.Append($"\t\t{entry.Key} = {entry.Value}");
-					result.Append(k_WindowsNewline);
-				}
-
-				result.Append("\tEndGlobalSection");
-			}
-
-			return result.ToString();
-		}
-
-		/// <summary>
-		/// Get a Project("{guid}") = "MyProject", "MyProject.unityproj", "{projectguid}"
-		/// entry for each relevant language
-		/// </summary>
-		private string GetProjectEntriesText(IEnumerable<SolutionProjectEntry> entries)
-		{
-			var projectEntries = entries.Select(entry => string.Format(
-				m_SolutionProjectEntryTemplate,
-				entry.ProjectFactoryGuid, entry.Name, entry.FileName, entry.ProjectGuid, entry.Metadata
-			));
-
-			return string.Join(k_WindowsNewline, projectEntries.ToArray());
-		}
-
 		private IEnumerable<SolutionProjectEntry> ToProjectEntries(IEnumerable<Assembly> assemblies)
 		{
 			foreach (var assembly in assemblies)
@@ -967,22 +827,6 @@ namespace Neegool.Unity.Zed.Editor
 					Metadata = k_WindowsNewline
 				};
 			}
-		}
-
-		/// <summary>
-		/// Generate the active configuration string for a given project guid
-		/// </summary>
-		private string GetProjectActiveConfigurations(string projectGuid)
-		{
-			const string solutionProjectConfigurationTemplate =
-				"\t\t{{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU" + k_WindowsNewline
-				+ "\t\t{{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU" + k_WindowsNewline
-				+ "\t\t{{{0}}}.Release|Any CPU.ActiveCfg = Release|Any CPU" + k_WindowsNewline
-				+ "\t\t{{{0}}}.Release|Any CPU.Build.0 = Release|Any CPU";
-
-			return string.Format(
-				solutionProjectConfigurationTemplate,
-				projectGuid);
 		}
 
 		internal string EscapedRelativePathFor(string file, out UnityEditor.PackageManager.PackageInfo packageInfo)
